@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dear Love</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #121212;
+    color: white;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .login, .chat {
+    display: none;
+    height: 100%;
+    width: 100%;
+  }
+  .visible {
+    display: flex;
+    flex-direction: column;
+  }
+  input, button, textarea {
+    border: none;
+    border-radius: 25px;
+    padding: 10px;
+    margin: 5px 0;
+  }
+  input, textarea {
+    width: 100%;
+    background-color: #1e1e1e;
+    color: white;
+  }
+  button {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #0d0d0d;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  .message {
+    margin: 5px 0;
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 75%;
+    word-wrap: break-word;
+  }
+  .own {
+    background-color: #004085;
+    color: white;
+    align-self: flex-end;
+  }
+  .other {
+    background-color: #2a2a2a;
+    color: white;
+    align-self: flex-start;
+  }
+  .chat-input {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: #1a1a1a;
+  }
+  .chat-input textarea {
+    flex: 1;
+    resize: none;
+    font-size: 14px;
+    padding: 10px 15px;
+    border-radius: 25px;
+    margin-right: 10px;
+    max-height: 100px;
+    overflow-y: auto;
+  }
+  .chat-input button {
+    border-radius: 50%;
+    background-color: #007bff;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+
+<div class="login visible">
+  <div style="margin:auto; width:100%; max-width:400px; padding:20px;">
+    <h2>Enter Unique Code</h2>
+    <input type="text" id="codeInput" placeholder="Enter Room Code">
+    <input type="text" id="nameInput" placeholder="Enter Your Name">
+    <button onclick="joinChat()">Join Chat</button>
+  </div>
+</div>
+
+<div class="chat">
+  <div class="messages" id="messageList"></div>
+  <div class="chat-input">
+    <textarea id="messageInput" placeholder="Type a message..." rows="1"></textarea>
+    <button onclick="sendMessage()">➤</button>
+  </div>
+</div>
+
+<script>
+  let roomCode = "";
+  let userName = "";
+
+  function joinChat() {
+    roomCode = document.getElementById("codeInput").value.trim();
+    userName = document.getElementById("nameInput").value.trim();
+    if (!roomCode || !userName) {
+      alert("Please enter both code and name!");
+      return;
+    }
+    localStorage.setItem("chatRoom_" + roomCode + "_name", userName);
+    if (!localStorage.getItem("chatRoom_" + roomCode)) {
+      localStorage.setItem("chatRoom_" + roomCode, JSON.stringify([]));
+    }
+    document.querySelector(".login").classList.remove("visible");
+    document.querySelector(".chat").classList.add("visible");
+    loadMessages();
+  }
+
+  function loadMessages() {
+    let messages = JSON.parse(localStorage.getItem("chatRoom_" + roomCode)) || [];
+    let messageList = document.getElementById("messageList");
+    messageList.innerHTML = "";
+    messages.forEach(msg => {
+      let div = document.createElement("div");
+      div.classList.add("message");
+      if (msg.name === userName) {
+        div.classList.add("own");
+      } else {
+        div.classList.add("other");
+      }
+      div.innerText = msg.text;
+      messageList.appendChild(div);
+    });
+    messageList.scrollTop = messageList.scrollHeight;
+  }
+
+  function sendMessage() {
+    let text = document.getElementById("messageInput").value.trim();
+    if (!text) return;
+    let messages = JSON.parse(localStorage.getItem("chatRoom_" + roomCode)) || [];
+    messages.push({ name: userName, text: text });
+    localStorage.setItem("chatRoom_" + roomCode, JSON.stringify(messages));
+    document.getElementById("messageInput").value = "";
+    loadMessages();
+  }
+
+  setInterval(() => {
+    if (roomCode) loadMessages();
+  }, 800);
+</script>
+
+</body>
+</html>
